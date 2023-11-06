@@ -1,0 +1,7 @@
+{
+    "rust-analyzer.linkedProjects": [
+        "./programs/poirl/Cargo.toml",
+        "./programs/poirl/Cargo.toml",
+        "./programs/poirl/Cargo.toml"
+    ]
+}
