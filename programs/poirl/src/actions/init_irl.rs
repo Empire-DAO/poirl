@@ -1,3 +1,4 @@
+use solana_program::sysvar;
 use crate::*;
 
 // *********************************************************
@@ -19,6 +20,8 @@ pub struct InitIrl<'info> {
     /// CHECK: system program is ok
     pub system_program: AccountInfo<'info>,
     pub clock: Sysvar<'info, Clock>,
+    /// CHECK: SLOT_HASHES ok
+    pub slot_hashes: UncheckedAccount<'info>
 }
 
 #[derive(Clone, AnchorSerialize, AnchorDeserialize)]
@@ -28,6 +31,26 @@ pub struct InitIrlParams {
 }
 
 pub fn init_irl(ctx: Context<InitIrl>, params: InitIrlParams) -> Result<()> {
+    // slot hashes testing
+    if ctx.accounts.slot_hashes.key() != sysvar::slot_hashes::id() {
+        msg!("Invalid SlotHashes sysvar");
+        return Err(PoirlError::WrongAuthority.into());
+    }
+    msg!("-- correct sysvar account");
+    let data = ctx.accounts.slot_hashes.try_borrow_data()?;
+    let num_slot_hashes = u64::from_le_bytes(data[0..8].try_into().unwrap());
+    let mut pos = 8;
+    for _i in 0..num_slot_hashes {
+        let slot = u64::from_le_bytes(data[pos..pos + 8].try_into().unwrap());
+        pos += 8;
+        let hash = &data[pos..pos + 32];
+        msg!("slot: {}", slot);
+        msg!("bytes: {:?}", hash);
+        msg!("hash: {}", bs58::encode(hash).into_string());
+        pos += 32;
+    }
+
+
     require!(params.name.len() <= 32, PoirlError::NameTooLong);
     ctx.accounts.irl.name = params.name;
     ctx.accounts.irl.arx_pubkey = params.arx_pubkey;

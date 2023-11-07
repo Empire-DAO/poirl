@@ -65,7 +65,8 @@ export const initIrlIx = async (program, arxPubkey, name, signerPubkey) => {
         irl: irlPda,
         irlAuth: signerPubkey,
         systemProgram: web3.SystemProgram.programId,
-        clock: web3.SYSVAR_CLOCK_PUBKEY
+        clock: web3.SYSVAR_CLOCK_PUBKEY,
+        slotHashes: web3.SYSVAR_SLOT_HASHES_PUBKEY
     }).instruction();
 }
 

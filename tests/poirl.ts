@@ -4,6 +4,7 @@ import { Poirl } from "../target/types/poirl";
 import { fetchIrlState, findIrlPda, getErrorCode, initIrlIx, loadCliWallet, proveIrlIx, requestAirdrop, sendTx, updatePasswordIx } from "./client-help";
 import { expect } from "chai";
 import { invalid_sig, super_secret, wrong_chip, wrong_password } from "./arxData";
+import {getConnection} from '../../test_dir/test-help';
 
 describe("poirl", () => {
   // Configure the client to use the local cluster.
@@ -27,11 +28,16 @@ describe("poirl", () => {
     irlPda = findIrlPda(program, adminKp.publicKey, name);
   });
 
+  const connection = getConnection();
   describe("admin", () => {
     describe("create irl", () => {
-      it("shoule create irl", async () => {
+      it.only("shoule create irl", async () => {
+        console.log(await connection.getLatestBlockhashAndContext());
         const ix = await initIrlIx(program, arxPublicKey, name, adminKp.publicKey);
-        await sendTx([ix], adminKp);
+        const modifyComputeUnits = web3.ComputeBudgetProgram.setComputeUnitLimit({ 
+          units: 1000000 
+        });
+        await sendTx([ix, modifyComputeUnits], adminKp);
       });
     });
 

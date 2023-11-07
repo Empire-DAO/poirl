@@ -1069,6 +1069,7 @@ name = "poirl"
 version = "0.1.0"
 dependencies = [
  "anchor-lang",
+ "bs58 0.4.0",
  "hex",
  "solana-program",
 ]
