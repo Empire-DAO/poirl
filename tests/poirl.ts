@@ -1,9 +1,11 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program, web3 } from "@coral-xyz/anchor";
 import { Poirl } from "../target/types/poirl";
-import { fetchIrlState, findIrlPda, getErrorCode, initIrlIx, loadCliWallet, proveIrlIx, requestAirdrop, sendTx, updatePasswordIx } from "./client-help";
+import { fetchIrlState, findIrlPda, initIrlIx, proveIrlIx, updatePasswordIx } from "./client-help";
+import { getErrorCode, loadCliWallet, requestAirdrop, sendTx} from '../../test_dir/test-help';
 import { expect } from "chai";
 import { invalid_sig, super_secret, wrong_chip, wrong_password } from "./arxData";
+import { getArxSig } from '../../test_dir/ingest_arx';
 
 describe("poirl", () => {
   // Configure the client to use the local cluster.
@@ -31,7 +33,7 @@ describe("poirl", () => {
     describe("create irl", () => {
       it("shoule create irl", async () => {
         const ix = await initIrlIx(program, arxPublicKey, name, adminKp.publicKey);
-        await sendTx([ix], adminKp);
+        await sendTx([ix], adminKp, true);
       });
     });
 
@@ -70,7 +72,6 @@ describe("poirl", () => {
       it("should fail to set password as non admin", async () => {
         const ix = await updatePasswordIx(program, irlPda, 'ngmi', 0, clientKp.publicKey);
         const result = await sendTx([ix], clientKp);
-        expect(result.value).to.have.property('err');
         expect(getErrorCode(result)).eql(6005);
       })
     });
@@ -84,35 +85,30 @@ describe("poirl", () => {
 
     it("should checkin", async () => {
       const ix = await proveIrlIx(program, irlPda, super_secret, clientKp.publicKey);
-      const result = await sendTx([ix], clientKp);
-      expect(result.value.err).eql(null);
+      expect(await sendTx([ix], clientKp)).eql(true);
     });
 
     it("should fail to checkin for invalid signature", async () => {
       const ix = await proveIrlIx(program, irlPda, invalid_sig, clientKp.publicKey);
       const result = await sendTx([ix], clientKp);
-      expect(result.value).to.have.property('err');
       expect(getErrorCode(result)).eql(6001);
     });
 
     it("should fail to checkin for incorrect arx chip", async () => {
       const ix = await proveIrlIx(program, irlPda, wrong_chip, clientKp.publicKey);
       const result = await sendTx([ix], clientKp);
-      expect(result.value).to.have.property('err');
       expect(getErrorCode(result)).eql(6002);
     });
 
     it("should fail to checkin for incorrect password", async () => {
       const ix = await proveIrlIx(program, irlPda, wrong_password, clientKp.publicKey);
       const result = await sendTx([ix], clientKp);
-      expect(result.value).to.have.property('err');
       expect(getErrorCode(result)).eql(6000);
     });
 
     it("should fail to checkin for incorrect wallet", async () => {
       const ix = await proveIrlIx(program, irlPda, wrong_password, clientKp.publicKey);
       const result = await sendTx([ix], clientKp);
-      expect(result.value).to.have.property('err');
       expect(getErrorCode(result)).eql(6000);
     });
     
@@ -122,9 +118,23 @@ describe("poirl", () => {
 
       ix = await proveIrlIx(program, irlPda, super_secret, clientKp.publicKey);
       const result = await sendTx([ix], clientKp);
-      expect(result.value).to.have.property('err');
       expect(getErrorCode(result)).eql(6004);
     });
+  });
+
+  describe("real time / real chip", () => {
+    before("update password as client", async () => {
+      let ix = await updatePasswordIx(program, irlPda, null, null, clientKp.publicKey);
+      await sendTx([ix], clientKp, true);
+    });
+
+    it("validate signature with updated password", async () => {
+      const {password} = await fetchIrlState(program, irlPda);
+      const arxSig = await getArxSig(clientKp.publicKey.toString(), password);
+
+      const ix = await proveIrlIx(program, irlPda, arxSig, clientKp.publicKey);
+      expect(await sendTx([ix], clientKp)).eql(true);
+    })
   });
 });
 
