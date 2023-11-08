@@ -45,7 +45,7 @@ describe("poirl", () => {
 
       it("should update password w/ random string and 2 min lifetime", async () => {
         const ix = await updatePasswordIx(irlPda, null, null, adminKp.publicKey);
-        await sendTx([ix], adminKp, true);
+        expect(await sendTx([ix], adminKp, true)).eql(true);
         const unixTimestamp = (new Date()).getTime() / 1000;
 
         const newIrlState = await fetchIrlState(irlPda);

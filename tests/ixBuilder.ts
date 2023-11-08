@@ -4,8 +4,11 @@ import { Poirl } from "../target/types/poirl";
 import { BN } from "bn.js";
 import idl from "../target/idl/poirl.json";
 
+anchor.setProvider(anchor.AnchorProvider.env());
 export const poirlProgram = new Program(idl as anchor.Idl, new web3.PublicKey('5yXZS9y1HQ2Ndu66fogKi7tzJbJZeWGGLTNYX7uc8x3o'));
-
+// ****************************************
+// PDAs
+// ****************************************
 export const findIrlPda = (arxPubkey) => {
     let [irlPda] = web3.PublicKey.findProgramAddressSync([
       Buffer.from("irl"),
@@ -13,14 +16,15 @@ export const findIrlPda = (arxPubkey) => {
     ], poirlProgram.programId);
     return irlPda;
 }
-
 export const fetchIrlState = async (irlPda) => {
     return await poirlProgram.account.irl.fetch(irlPda);
 }
 
+// ****************************************
+// INIT IX
+// ****************************************
 export const initIrlIx = async (arxPubkey, name, signerPubkey) => {
     const irlPda = findIrlPda(arxPubkey);
-    console.log('-> irlPda: ', irlPda.toString())
     return await poirlProgram.methods.createIrl({
         name,
         arxPubkey
@@ -32,6 +36,9 @@ export const initIrlIx = async (arxPubkey, name, signerPubkey) => {
     }).instruction();
 }
 
+// ****************************************
+// INTERACTION
+// ****************************************
 export const updatePasswordIx = async (irlPda, newPassword, lifetime, signerPubkey) => {
     return await poirlProgram.methods.updatePassword({
         newPassword,
@@ -42,7 +49,6 @@ export const updatePasswordIx = async (irlPda, newPassword, lifetime, signerPubk
         clock: web3.SYSVAR_CLOCK_PUBKEY
     }).instruction();
 }
-
 export const proveIrlIx = async (irlPda, signatureData, signerPubkey) => {
     return await poirlProgram.methods.proveInRealLife({
         arxPubkey: signatureData.arxPubkey,
