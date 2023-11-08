@@ -1,22 +1,27 @@
-import { web3 } from "@coral-xyz/anchor";
+import * as anchor from "@coral-xyz/anchor";
+import { Program, web3 } from "@coral-xyz/anchor";
+import { Poirl } from "../target/types/poirl";
 import { BN } from "bn.js";
+import idl from "../target/idl/poirl.json";
 
-export const findIrlPda = (program, signerPubkey, name) => {
+export const poirlProgram = new Program(idl as anchor.Idl, new web3.PublicKey('5yXZS9y1HQ2Ndu66fogKi7tzJbJZeWGGLTNYX7uc8x3o'));
+
+export const findIrlPda = (arxPubkey) => {
     let [irlPda] = web3.PublicKey.findProgramAddressSync([
       Buffer.from("irl"),
-      signerPubkey.toBuffer(),
-      Buffer.from(name)
-    ], program.programId);
+      Buffer.from(arxPubkey.substring(0, 32))
+    ], poirlProgram.programId);
     return irlPda;
 }
 
-export const fetchIrlState = async (program, irlPda) => {
-    return await program.account.irl.fetch(irlPda, {commitment: "confimred"});
+export const fetchIrlState = async (irlPda) => {
+    return await poirlProgram.account.irl.fetch(irlPda);
 }
 
-export const initIrlIx = async (program, arxPubkey, name, signerPubkey) => {
-    const irlPda = findIrlPda(program, signerPubkey, name);
-    return await program.methods.createIrl({
+export const initIrlIx = async (arxPubkey, name, signerPubkey) => {
+    const irlPda = findIrlPda(arxPubkey);
+    console.log('-> irlPda: ', irlPda.toString())
+    return await poirlProgram.methods.createIrl({
         name,
         arxPubkey
     }).accounts({
@@ -27,8 +32,8 @@ export const initIrlIx = async (program, arxPubkey, name, signerPubkey) => {
     }).instruction();
 }
 
-export const updatePasswordIx = async (program, irlPda, newPassword, lifetime, signerPubkey) => {
-    return await program.methods.updatePassword({
+export const updatePasswordIx = async (irlPda, newPassword, lifetime, signerPubkey) => {
+    return await poirlProgram.methods.updatePassword({
         newPassword,
         lifetime: lifetime === null ? null : new BN(lifetime)
     }).accounts({
@@ -38,8 +43,8 @@ export const updatePasswordIx = async (program, irlPda, newPassword, lifetime, s
     }).instruction();
 }
 
-export const proveIrlIx = async (program, irlPda, signatureData, signerPubkey) => {
-    return await program.methods.proveInRealLife({
+export const proveIrlIx = async (irlPda, signatureData, signerPubkey) => {
+    return await poirlProgram.methods.proveInRealLife({
         arxPubkey: signatureData.arxPubkey,
         digest: signatureData.digest,
         r: signatureData.r,
