@@ -11,7 +11,7 @@ pub struct InitIrl<'info> {
         init,
         space=Irl::LEN,
         payer = irl_auth,
-        seeds=["irl".as_bytes(), irl_auth.key().as_ref(), &params.name.as_bytes()],
+        seeds=["irl".as_bytes(), &params.arx_pubkey[..32].as_bytes()],
         bump,
     )]
     pub irl: Account<'info, Irl>,

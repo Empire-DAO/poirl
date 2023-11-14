@@ -14,11 +14,11 @@ pub struct ProveIrl<'info> {
 
 #[derive(Clone, AnchorSerialize, AnchorDeserialize)]
 pub struct ProveIrlParams {
-    arx_pubkey: String,
-    digest: String,
-    r: String,
-    s: String,
-    v: u8,
+    pub arx_pubkey: String,
+    pub digest: String,
+    pub r: String,
+    pub s: String,
+    pub v: u8,
 }
 
 pub fn prove_irl(ctx: Context<ProveIrl>, params: ProveIrlParams) -> Result<()> {
