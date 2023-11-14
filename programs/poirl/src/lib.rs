@@ -5,7 +5,7 @@ pub use state::*;
 pub mod actions;
 pub use actions::*;
 
-declare_id!("5yXZS9y1HQ2Ndu66fogKi7tzJbJZeWGGLTNYX7uc8x3o");
+declare_id!("Adqu9U29r9oQHiBxvykpw8MnYMSbbBwC2YH4z9shbdfq");
 
 #[program]
 pub mod poirl {

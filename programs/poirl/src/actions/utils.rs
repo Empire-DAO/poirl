@@ -11,7 +11,6 @@ pub fn verify_slot_recency(slot_hashes: UncheckedAccount,  input_slot: u64) -> b
     let mut pos = 8;
     for _i in 0..100 {
         let slot = u64::from_le_bytes(data[pos..pos + 8].try_into().unwrap());
-        msg!("slot: {}", slot);
         pos += 40;
         if input_slot == slot {
             return true

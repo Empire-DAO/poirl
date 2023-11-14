@@ -30,8 +30,8 @@ describe("CREATE IRL ACCOUNT WITH ARX CHIP", () => {
         console.log('-- irlPda: ', irlPda.toString());
     });
 
-    it.skip("should init irl", async () => {
-        const ix = await initIrlIx(arxPublicKey, seatName, adminKp.publicKey);
+    it("should init irl", async () => {
+        const ix = await initIrlIx(arxPublicKey, seatName, adminKp.publicKey, true, null, null);
         expect(await sendTx([ix], adminKp, true)).eql(true);
     });
 
