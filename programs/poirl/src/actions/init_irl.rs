@@ -24,7 +24,10 @@ pub struct InitIrl<'info> {
 #[derive(Clone, AnchorSerialize, AnchorDeserialize)]
 pub struct InitIrlParams {
     arx_pubkey: String,
-    name: String
+    name: String,
+    password: Option<String>,
+    lifetime: Option<i64>,
+    protected: bool
 }
 
 pub fn init_irl(ctx: Context<InitIrl>, params: InitIrlParams) -> Result<()> {
@@ -32,6 +35,6 @@ pub fn init_irl(ctx: Context<InitIrl>, params: InitIrlParams) -> Result<()> {
     ctx.accounts.irl.name = params.name;
     ctx.accounts.irl.arx_pubkey = params.arx_pubkey;
     ctx.accounts.irl.authority = ctx.accounts.irl_auth.key();
-    Irl::rotate_passowrd(&mut ctx.accounts.irl, &ctx.accounts.clock, RotatePasswordParams::none())?;
+    Irl::rotate_passowrd(&mut ctx.accounts.irl, &ctx.accounts.clock, params.protected, params.password, params.lifetime)?;
     Ok(())
 }

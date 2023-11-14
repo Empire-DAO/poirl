@@ -3,9 +3,9 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-poirl = "5yXZS9y1HQ2Ndu66fogKi7tzJbJZeWGGLTNYX7uc8x3o"
+poirl = "Adqu9U29r9oQHiBxvykpw8MnYMSbbBwC2YH4z9shbdfq"
 [programs.devnet]
-poirl = "5yXZS9y1HQ2Ndu66fogKi7tzJbJZeWGGLTNYX7uc8x3o"
+poirl = "Adqu9U29r9oQHiBxvykpw8MnYMSbbBwC2YH4z9shbdfq"
 
 [registry]
 url = "https://api.apr.dev"

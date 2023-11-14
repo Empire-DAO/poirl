@@ -13,5 +13,7 @@ pub enum PoirlError {
     #[msg("Password expired")]
     PasswordExpired,                        // 6004
     #[msg("Wrong Authority")]
-    WrongAuthority                          // 6005
+    WrongAuthority,                         // 6005
+    #[msg("Invalid Slot")]
+    InvalidSlot                             // 6006
 }

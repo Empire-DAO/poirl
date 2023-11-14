@@ -4,12 +4,13 @@ use crate::*;
 // init_irl
 // *******************
 #[derive(Accounts)]
-#[instruction(params: InitIrlParams)]
 pub struct ProveIrl<'info> {
     pub signer: Signer<'info>,
     #[account(mut)]
     pub irl: Account<'info, Irl>,
     pub clock: Sysvar<'info, Clock>,
+    /// CHECK: SLOT_HASHES ok
+    pub slot_hashes: UncheckedAccount<'info>
 }
 
 #[derive(Clone, AnchorSerialize, AnchorDeserialize)]
@@ -19,18 +20,12 @@ pub struct ProveIrlParams {
     pub r: String,
     pub s: String,
     pub v: u8,
+    pub slot: u64
 }
 
 pub fn prove_irl(ctx: Context<ProveIrl>, params: ProveIrlParams) -> Result<()> {
     // assert IRL match for arx pubkey on chain
     require!(params.arx_pubkey == ctx.accounts.irl.arx_pubkey, PoirlError::InvalidArxPubkey);
-    // assert digest contains signer pubkey + password
-    let recovered_digest = Irl::recover_digest(&mut ctx.accounts.irl, ctx.accounts.signer.key())?;
-    require!(params.digest == recovered_digest, PoirlError::InvalidDigest);
-    // assert password has not expired
-    msg!("current time: {}", ctx.accounts.clock.unix_timestamp);
-    msg!("expires at: {}", ctx.accounts.irl.expires_at);
-    require!(ctx.accounts.clock.unix_timestamp < ctx.accounts.irl.expires_at, PoirlError::PasswordExpired);
 
     // build inputted pubkey for comparison
     let public_key_str = &params.arx_pubkey[2..];
@@ -61,6 +56,16 @@ pub fn prove_irl(ctx: Context<ProveIrl>, params: ProveIrlParams) -> Result<()> {
             return Err(PoirlError::InvalidSignature.into());
         }
     }
+
+    // if password protect, assert digest contains signer pubkey and password
+    if ctx.accounts.irl.password_protected {
+        let recovered_digest = Irl::recover_digest(&mut ctx.accounts.irl, ctx.accounts.signer.key())?;
+        require!(params.digest == recovered_digest, PoirlError::InvalidDigest);
+        require!(ctx.accounts.clock.unix_timestamp < ctx.accounts.irl.expires_at.unwrap(), PoirlError::PasswordExpired);
+    }
+
+    // assert slot recency w/ slot
+    require!(verify_slot_recency(ctx.accounts.slot_hashes.clone(), params.slot), PoirlError::InvalidSlot);
 
     Ok(())
 }
